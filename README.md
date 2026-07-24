@@ -62,6 +62,8 @@ kosis-cli <command> [--파라미터 값 ...] [옵션]
 
 옵션: `--key <인증키>`(기본: `KOSIS_API_KEY` env) · `--pretty`(들여쓰기 출력) · `--debug`(호출 URL을 stderr로, 인증키 제외)
 
+> `--key`로 넘긴 값은 셸 히스토리·프로세스 목록에 남을 수 있습니다. 가급적 `KOSIS_API_KEY` 환경변수(또는 시크릿 매니저 주입)를 쓰세요.
+
 파라미터명은 [KOSIS 개발가이드](https://kosis.kr/openapi)의 영문 항목명과 1:1로 같습니다.
 
 ### 전형적인 흐름 — 검색 → 코드 확인 → 수치 조회
@@ -116,6 +118,11 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 - 설정 파일 위치: macOS `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows `%APPDATA%\Claude\claude_desktop_config.json`
 - 재시작하면 `kosis_search`, `kosis_data` 등 10개 도구가 노출됩니다.
 - 과대 응답은 100,000자에서 잘리고 범위를 좁히라는 안내가 붙습니다.
+
+흔한 함정:
+
+- **`spawn node ENOENT`**: Claude Desktop(GUI)은 셸 PATH를 안 읽어서 nvm 등으로 설치한 node를 못 찾는 경우가 많습니다. `"command"`에 node의 **절대경로**를 쓰세요 (`which node` / `where node`로 확인, 예: `/opt/homebrew/bin/node`).
+- **Windows 경로**: JSON 안의 백슬래시는 이스케이프해야 합니다 — `"C:\\Users\\me\\kosis-mcp\\build\\server.js"`.
 
 ## 5. 알아두면 좋은 KOSIS API 특성
 

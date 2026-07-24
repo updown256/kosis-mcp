@@ -50,6 +50,12 @@ describe("buildUrl", () => {
     const url = buildUrl(svc("search"), { searchNm: "인구", sort: "" });
     expect(url.searchParams.has("sort")).toBe(false);
   });
+
+  it("bigdata(미실측 엔드포인트)에는 jsonVD를 붙이지 않는다", () => {
+    const url = buildUrl(svc("bigdata"), { userStatsId: "u/1", type: "Generic" });
+    expect(url.searchParams.has("jsonVD")).toBe(false);
+    expect(buildUrl(svc("search"), { searchNm: "a" }).searchParams.get("jsonVD")).toBe("Y");
+  });
 });
 
 describe("validateParams", () => {

@@ -61,8 +61,10 @@ export function buildUrl(def: ServiceDef, params: Record<string, string>): URL {
   }
   if (!url.searchParams.has("format")) url.searchParams.set("format", "json");
   // KOSIS는 format=json이어도 기본으로 따옴표 없는 키의 비표준 JSON을 반환한다.
-  // jsonVD=Y를 붙이면 전 엔드포인트에서 표준 JSON이 온다 (2026-07 실측).
-  if (url.searchParams.get("format") === "json") url.searchParams.set("jsonVD", "Y");
+  // jsonVD=Y를 붙이면 표준 JSON이 온다 (2026-07 실측). 단 대용량(statisticsBigData.do)은
+  // 자료등록 없이는 실측 불가라 검증된 엔드포인트에만 부여한다 (미지 파라미터 부작용 회피).
+  if (url.searchParams.get("format") === "json" && endpoint !== "statisticsBigData.do")
+    url.searchParams.set("jsonVD", "Y");
   return url;
 }
 
