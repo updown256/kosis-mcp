@@ -21,12 +21,12 @@ describe("레지스트리 무결성", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("서비스별 파라미터명은 유일하고 apiKey/format을 포함하지 않는다", () => {
+  it("서비스별 파라미터명은 유일하고 apiKey를 포함하지 않는다 (format은 bigdata만 허용)", () => {
     for (const s of SERVICES) {
       const names = s.params.map((p) => p.name);
       expect(new Set(names).size, s.id).toBe(names.length);
       expect(names, s.id).not.toContain("apiKey");
-      expect(names, s.id).not.toContain("format");
+      if (s.id !== "bigdata") expect(names, s.id).not.toContain("format");
     }
   });
 });
@@ -114,6 +114,32 @@ describe("주요지표 엔드포인트 선택", () => {
     expect(resolveEndpoint(svc("indicator-data"), { jipyoNm: "실업률" }).fixed.serviceDetail).toBe("indDetail");
   });
 
+  it("indicator-search: jipyoId → indIdListSearchRequest(indIdList), jipyoNm → indListSearchRequest", () => {
+    const byId = resolveEndpoint(svc("indicator-search"), { jipyoId: "274" });
+    expect(byId.endpoint).toBe("indIdListSearchRequest.do");
+    expect(byId.fixed.serviceDetail).toBe("indIdList");
+    expect(resolveEndpoint(svc("indicator-search"), { jipyoNm: "실업률" }).endpoint).toBe(
+      "indListSearchRequest.do",
+    );
+  });
+
+  it("indicator-data: 시점/최신자료 파라미터는 쌍으로만 허용", () => {
+    expect(() => validateParams(svc("indicator-data"), { jipyoId: "274", srvRn: "3" })).toThrow(/rn\+srvRn/);
+    expect(() => validateParams(svc("indicator-data"), { jipyoId: "274", strtPrdDe: "202301" })).toThrow(
+      /strtPrdDe\+endPrdDe/,
+    );
+    expect(() =>
+      validateParams(svc("indicator-data"), { jipyoId: "274", rn: "1", srvRn: "3" }),
+    ).not.toThrow();
+    expect(() =>
+      validateParams(svc("indicator-data"), { jipyoId: "274", strtPrdDe: "202301", endPrdDe: "202312" }),
+    ).not.toThrow();
+  });
+
+  it("bigdata: type 필수", () => {
+    expect(() => validateParams(svc("bigdata"), { userStatsId: "u/1" })).toThrow(/type/);
+  });
+
   it("indicator-list: listId → service=3, prdSe → prList", () => {
     expect(resolveEndpoint(svc("indicator-list"), { listId: "L" }).fixed.service).toBe("3");
     expect(resolveEndpoint(svc("indicator-list"), { prdSe: "M" }).endpoint).toBe("prListSearchRequest.do");
@@ -191,6 +217,21 @@ describe("callService", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("<xml>ok</xml>", { status: 200 })));
     const data = await callService(svc("search"), { searchNm: "a" }, { apiKey: "K" });
     expect(data).toBe("<xml>ok</xml>");
+  });
+
+  it("XML 오류 봉투(<err>…</err>)는 KosisError로 매핑한다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response("<error><err>11</err><errMsg>인증키 기간이 만료되었습니다.</errMsg></error>", {
+            status: 200,
+          }),
+      ),
+    );
+    await expect(callService(svc("search"), { searchNm: "a" }, { apiKey: "K" })).rejects.toMatchObject({
+      code: "11",
+    });
   });
 
   it("HTTP 오류는 KosisError로 감싼다", async () => {

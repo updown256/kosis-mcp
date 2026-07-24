@@ -101,8 +101,8 @@ async function main(argv: string[]): Promise<void> {
     const v = values[p.name];
     if (typeof v === "string") params[p.name] = v;
   }
-  // 편의: search는 첫 위치 인자를 검색어로 받는다
-  if (def.id === "search" && positionals[0] && !params.searchNm) params.searchNm = positionals[0];
+  // 편의: search는 위치 인자 전체를 공백으로 이어 검색어로 받는다
+  if (def.id === "search" && positionals.length && !params.searchNm) params.searchNm = positionals.join(" ");
   else if (positionals.length) fail(`위치 인자는 지원하지 않음: ${positionals.join(" ")}`, 2);
 
   const apiKey = typeof values.key === "string" ? values.key : process.env.KOSIS_API_KEY;

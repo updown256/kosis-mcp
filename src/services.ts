@@ -180,7 +180,8 @@ export const SERVICES: ServiceDef[] = [
     endpoint: "statisticsBigData.do",
     params: [
       { name: "userStatsId", desc: "사용자 등록 통계표 ID", required: true },
-      { name: "type", desc: "SDMX 유형", enum: ["DSD", "Generic", "StructureSpecific"] },
+      { name: "type", desc: "SDMX 유형", required: true, enum: ["DSD", "Generic", "StructureSpecific"] },
+      { name: "format", desc: "결과 유형", enum: ["json", "sdmx"] },
       { name: "prdSe", desc: PRD_SE_DESC },
       ...PERIOD_PARAMS,
       { name: "version", desc: "결과값 구분 (생략 시 구버전 출력)" },
@@ -206,13 +207,18 @@ export const SERVICES: ServiceDef[] = [
     id: "indicator-search",
     desc: "통계주요지표 목록조회 — jipyoNm(지표명) 또는 jipyoId(고유번호)로 지표 목록(단위·수록기간 포함)을 찾는다.",
     endpoint: "indListSearchRequest.do",
-    fixed: { method: "getList", service: "4", serviceDetail: "indList" },
     params: [
       { name: "jipyoNm", desc: "지표명" },
       { name: "jipyoId", desc: "지표 ID" },
       ...PAGE_PARAMS,
     ],
     validate: (p) => (p.jipyoId || p.jipyoNm ? null : "jipyoNm 또는 jipyoId 필요"),
+    // 가이드 2.7.2.5는 ID 조회도 indListSearchRequest로 적어 놨지만 실제로는 err 20 —
+    // indIdListSearchRequest.do + serviceDetail=indIdList가 동작한다 (2026-07 실측)
+    resolve: (p) =>
+      p.jipyoId
+        ? { endpoint: "indIdListSearchRequest.do", fixed: { method: "getList", service: "4", serviceDetail: "indIdList" } }
+        : { endpoint: "indListSearchRequest.do", fixed: { method: "getList", service: "4", serviceDetail: "indList" } },
   },
   {
     id: "indicator-data",
@@ -221,13 +227,20 @@ export const SERVICES: ServiceDef[] = [
     params: [
       { name: "jipyoId", desc: "지표 ID" },
       { name: "jipyoNm", desc: "지표명" },
-      { name: "startPrdDe", desc: "조회 시작 시점" },
-      { name: "endPrdDe", desc: "조회 종료 시점" },
-      { name: "rn", desc: "조회 기준 시점 (최신자료기준)" },
-      { name: "srvRn", desc: "조회 시점 개수 (최신자료기준)" },
+      // 가이드 표기는 startPrdDe지만 실제 API는 strtPrdDe만 인식한다 — startPrdDe는
+      // 조용히 무시되어 전체 시계열이 반환됨 (2026-07 실측)
+      { name: "strtPrdDe", desc: "조회 시작 시점 (예: 202301, endPrdDe와 쌍으로)" },
+      { name: "endPrdDe", desc: "조회 종료 시점 (strtPrdDe와 쌍으로)" },
+      { name: "rn", desc: "조회 기준 시점 (최신자료기준, srvRn과 쌍으로)" },
+      { name: "srvRn", desc: "조회 시점 개수 (최신자료기준, rn과 쌍으로)" },
       ...PAGE_PARAMS,
     ],
-    validate: (p) => (p.jipyoId || p.jipyoNm ? null : "jipyoId 또는 jipyoNm 필요"),
+    validate: (p) => {
+      if (!p.jipyoId && !p.jipyoNm) return "jipyoId 또는 jipyoNm 필요";
+      if (!!p.strtPrdDe !== !!p.endPrdDe) return "시점기준은 strtPrdDe+endPrdDe 쌍으로 지정";
+      if (!!p.rn !== !!p.srvRn) return "최신자료기준은 rn+srvRn 쌍으로 지정 (단독 지정 시 err 30)";
+      return null;
+    },
     resolve: (p) =>
       p.jipyoId
         ? { endpoint: "indIdDetailSearchRequest.do", fixed: { method: "getList", service: "4", serviceDetail: "indIdDetail" } }

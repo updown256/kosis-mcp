@@ -91,7 +91,8 @@ kosis-cli expl --orgId 101 --tblId DT_1DA7107S --metaItm All
 
 # 주요지표: 이름으로 찾고 수치 보기
 kosis-cli indicator-search --jipyoNm 실업률
-kosis-cli indicator-data --jipyoNm 실업률 --srvRn 12
+kosis-cli indicator-data --jipyoNm 실업률 --rn 1 --srvRn 12        # 최신 기준 12개 시점
+kosis-cli indicator-data --jipyoId 274 --strtPrdDe 202301 --endPrdDe 202312
 ```
 
 `data`의 분류/항목 값 문법: `all`(전체) · `11*`(해당 코드의 하위레벨 포함) · `11+21`(복수 지정)
@@ -125,6 +126,7 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 - **호출 제한**: 분당 200건. 통계자료(`data`)는 요청당 4만 셀 이하.
 - **오류 코드**: 10 인증키 누락 · 11 인증키 기간만료 · 20 필수변수 누락 · 21 잘못된 변수 · 30 조회결과 없음 · 31 조회결과 초과 · 40 분당 호출 제한 · 41 ROW수 제한 · 42 이용 제한 · 50 서버오류 — CLI/MCP 오류 메시지에 조치 방법이 함께 표시됩니다.
 - **`data`의 err 20**: 통계표가 분류를 여러 개 쓰는 경우(objL2, objL3 …) 해당 레벨을 전부 지정해야 합니다. `meta --type ITM`으로 분류 구조를 먼저 확인하세요.
+- **주요지표 API의 가이드 오기**: 공식 가이드의 `startPrdDe`는 실제로 무시되며 `strtPrdDe`가 맞고, 고유번호별 목록조회는 가이드에 적힌 URL이 아니라 `indIdListSearchRequest.do`가 동작합니다. 최신자료기준 조회는 `rn`+`srvRn`을 쌍으로 줘야 합니다. 이 도구는 전부 보정해 둔 상태입니다.
 
 ## 6. 개발
 

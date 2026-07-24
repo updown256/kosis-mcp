@@ -137,7 +137,19 @@ export async function callService(
   if (!res.ok) throw new KosisError(`KOSIS HTTP 오류: ${res.status} ${res.statusText}`);
 
   const data = parseLenient(text);
-  if (data === null) return text; // format=sdmx 등 비JSON 응답은 원문 그대로
+  if (data === null) {
+    // 대용량 등 일부 엔드포인트는 오류를 XML 봉투(<err>11</err>…)로 반환한다
+    const xmlErr = /<err>\s*(\d+)\s*<\/err>(?:.*?<errMsg>\s*([^<]*?)\s*<\/errMsg>)?/s.exec(text);
+    if (xmlErr) {
+      const [, code, rawMsg] = xmlErr;
+      const help = ERR_HELP[code];
+      throw new KosisError(
+        [`[err ${code}]`, rawMsg, help && `(${help})`].filter(Boolean).join(" "),
+        code,
+      );
+    }
+    return text; // format=sdmx 등 비JSON 정상 응답은 원문 그대로
+  }
   const err = extractError(data);
   if (err) throw new KosisError(err.msg, err.code);
   return data;

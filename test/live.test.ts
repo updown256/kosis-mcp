@@ -25,12 +25,21 @@ describe.skipIf(!KEY)("KOSIS 라이브 스모크", () => {
     expect(JSON.stringify(data)).toMatch(/LIST_ID/);
   }, 30_000);
 
-  it("주요지표 상세조회가 수치를 돌려준다", async () => {
+  it("주요지표 목록조회가 지표를 돌려준다", async () => {
     const data = await callService(
       getService("indicator-search")!,
       { jipyoNm: "실업률", numOfRows: "1" },
       { apiKey: KEY },
     );
     expect(JSON.stringify(data)).toMatch(/statJipyoId/);
+  }, 30_000);
+
+  it("주요지표 상세조회(rn+srvRn 쌍)가 수치(val)를 돌려준다", async () => {
+    const data = await callService(
+      getService("indicator-data")!,
+      { jipyoNm: "실업률", rn: "1", srvRn: "2", numOfRows: "2" },
+      { apiKey: KEY },
+    );
+    expect(JSON.stringify(data)).toMatch(/"val"/);
   }, 30_000);
 });

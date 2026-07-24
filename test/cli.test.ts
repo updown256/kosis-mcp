@@ -51,4 +51,11 @@ describe("kosis-cli (build/cli.js)", () => {
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/kosis\.kr\/openapi/);
   });
+
+  it("search는 여러 위치 인자를 하나의 검색어로 잇는다 (버리지 않음)", () => {
+    // 파라미터 검증(err)이 아니라 키 없음(발급 안내)까지 도달해야 위치 인자가 수용된 것
+    const r = run(["search", "경제활동", "인구"]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/인증키/);
+  });
 });
