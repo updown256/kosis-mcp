@@ -25,19 +25,25 @@ export KOSIS_API_KEY="발급받은-인증키"   # 셸 프로필 또는 시크릿
 
 ## 2. 설치
 
+하나의 패키지에 CLI(`kosis-cli`)와 MCP 서버(`kosis-mcp`)가 함께 들어 있습니다 — 한 번 설치하면 둘 다 쓸 수 있고, 필요한 쪽만 쓰면 됩니다.
+
+### npm (권장)
+
+```bash
+npm install -g kosis-mcp     # kosis-cli, kosis-mcp 명령이 생김
+kosis-cli help
+```
+
+설치 없이 일회성 실행도 됩니다: `npx -y -p kosis-mcp kosis-cli search 인구` (MCP 서버는 `npx -y kosis-mcp` — 아래 Claude Desktop 설정 참고)
+
+### 소스에서
+
 ```bash
 git clone https://github.com/updown256/kosis-mcp.git
 cd kosis-mcp
 npm install        # prepare 훅이 자동으로 빌드까지 수행
-```
-
-설치 확인:
-
-```bash
 node build/cli.js help
 ```
-
-(npm 전역 설치를 원하면 `npm link` 또는 `npm install -g .` — 이후 `kosis-cli`, `kosis-mcp` 명령 사용 가능)
 
 ## 3. CLI 사용법
 
@@ -107,12 +113,19 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 {
   "mcpServers": {
     "kosis": {
-      "command": "node",
-      "args": ["/절대/경로/kosis-mcp/build/server.js"],
+      "command": "npx",
+      "args": ["-y", "kosis-mcp"],
       "env": { "KOSIS_API_KEY": "발급받은-인증키" }
     }
   }
 }
+```
+
+소스 설치를 쓰는 경우에는 `command`/`args`를 이렇게:
+
+```json
+      "command": "node",
+      "args": ["/절대/경로/kosis-mcp/build/server.js"],
 ```
 
 - 설정 파일 위치: macOS `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows `%APPDATA%\Claude\claude_desktop_config.json`
@@ -121,7 +134,7 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 
 흔한 함정:
 
-- **`spawn node ENOENT`**: Claude Desktop(GUI)은 셸 PATH를 안 읽어서 nvm 등으로 설치한 node를 못 찾는 경우가 많습니다. `"command"`에 node의 **절대경로**를 쓰세요 (`which node` / `where node`로 확인, 예: `/opt/homebrew/bin/node`).
+- **`spawn npx ENOENT` / `spawn node ENOENT`**: Claude Desktop(GUI)은 셸 PATH를 안 읽어서 nvm 등으로 설치한 node/npx를 못 찾는 경우가 많습니다. `"command"`에 **절대경로**를 쓰세요 (`which npx` / `which node`로 확인, 예: `/opt/homebrew/bin/npx`).
 - **Windows 경로**: JSON 안의 백슬래시는 이스케이프해야 합니다 — `"C:\\Users\\me\\kosis-mcp\\build\\server.js"`.
 
 ## 5. 알아두면 좋은 KOSIS API 특성
