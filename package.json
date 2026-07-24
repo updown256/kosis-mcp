@@ -1,44 +1,24 @@
 {
-  "name": "kosis-mcp",
-  "version": "0.1.0",
-  "description": "국가통계포털(KOSIS) 공유서비스 OpenAPI CLI + MCP 서버 — 통계 검색·조회를 명령줄과 Claude Desktop에서",
+  "name": "kosis-workspace",
+  "private": true,
+  "description": "국가통계포털(KOSIS) OpenAPI 도구 모노리포 — kosis-cli(CLI, 무의존) + kosis-mcp(MCP 서버)",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/updown256/kosis-mcp.git"
   },
-  "keywords": [
-    "kosis",
-    "korea",
-    "statistics",
-    "openapi",
-    "mcp",
-    "model-context-protocol",
-    "cli"
-  ],
   "engines": {
     "node": ">=18"
   },
-  "bin": {
-    "kosis-cli": "build/cli.js",
-    "kosis-mcp": "build/server.js"
-  },
-  "main": "build/server.js",
-  "files": [
-    "build",
-    "README.md",
-    "LICENSE"
+  "workspaces": [
+    "packages/kosis-cli",
+    "packages/kosis-mcp"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build -w kosis-cli && npm run build -w kosis-mcp",
     "prepare": "npm run build",
-    "test": "vitest run",
-    "start": "node build/server.js"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "zod": "^4.4.3"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

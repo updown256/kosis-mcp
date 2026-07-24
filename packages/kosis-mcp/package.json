@@ -1,0 +1,41 @@
+{
+  "name": "kosis-mcp",
+  "version": "0.3.0",
+  "description": "국가통계포털(KOSIS) 공유서비스 OpenAPI MCP 서버 — Claude Desktop 등에서 한국 통계 검색·조회",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/updown256/kosis-mcp.git",
+    "directory": "packages/kosis-mcp"
+  },
+  "keywords": [
+    "kosis",
+    "korea",
+    "statistics",
+    "openapi",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "kosis-mcp": "build/server.js"
+  },
+  "main": "build/server.js",
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "kosis-cli": "^0.3.0",
+    "zod": "^4.4.3"
+  }
+}

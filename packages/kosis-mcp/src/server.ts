@@ -8,8 +8,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z, type ZodTypeAny } from "zod";
-import { KosisError, callService } from "./client.js";
-import { SERVICES, type ServiceDef } from "./services.js";
+import { KosisError, callService } from "kosis-cli/client";
+import { SERVICES, type ServiceDef } from "kosis-cli/services";
 
 /** MCP 응답 과대 출력 방지 (Claude Desktop 컨텍스트 보호) */
 const MAX_TEXT_CHARS = 100_000;

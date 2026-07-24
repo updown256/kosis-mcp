@@ -23,26 +23,35 @@ export KOSIS_API_KEY="발급받은-인증키"   # 셸 프로필 또는 시크릿
 
 > 참고: 인증키에는 유효기간이 있습니다. `[err 11]` 오류가 나면 KOSIS 마이페이지에서 기간을 연장하세요.
 
-## 2. 설치
+## 2. 설치 — 필요한 것 하나만
 
-하나의 패키지에 CLI(`kosis-cli`)와 MCP 서버(`kosis-mcp`)가 함께 들어 있습니다 — 한 번 설치하면 둘 다 쓸 수 있고, 필요한 쪽만 쓰면 됩니다.
+CLI와 MCP 서버는 **별도 패키지**입니다. 쓰는 쪽 하나만 설치하세요.
 
-### npm (권장)
+| 패키지 | 용도 | 런타임 의존성 |
+|---|---|---|
+| [`kosis-cli`](https://www.npmjs.com/package/kosis-cli) | 터미널에서 통계 조회 | **0개** (Node 내장만) |
+| [`kosis-mcp`](https://www.npmjs.com/package/kosis-mcp) | Claude Desktop 등 MCP 클라이언트 | MCP SDK + kosis-cli 코어 |
+
+### CLI만
 
 ```bash
-npm install -g kosis-mcp     # kosis-cli, kosis-mcp 명령이 생김
+npm install -g kosis-cli
 kosis-cli help
 ```
 
-설치 없이 일회성 실행도 됩니다: `npx -y -p kosis-mcp kosis-cli search 인구` (MCP 서버는 `npx -y kosis-mcp` — 아래 Claude Desktop 설정 참고)
+(일회성 실행: `npx -y kosis-cli search 인구`)
 
-### 소스에서
+### MCP만
+
+설치 없이 Claude Desktop 설정에 `npx -y kosis-mcp` 한 줄이면 됩니다 — 아래 4장 참고. (원하면 `npm install -g kosis-mcp`)
+
+### 소스에서 (개발용, 둘 다 빌드)
 
 ```bash
 git clone https://github.com/updown256/kosis-mcp.git
 cd kosis-mcp
-npm install        # prepare 훅이 자동으로 빌드까지 수행
-node build/cli.js help
+npm install        # 워크스페이스 전체 빌드
+node packages/kosis-cli/build/cli.js help
 ```
 
 ## 3. CLI 사용법
@@ -125,7 +134,7 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 
 ```json
       "command": "node",
-      "args": ["/절대/경로/kosis-mcp/build/server.js"],
+      "args": ["/절대/경로/kosis-mcp/packages/kosis-mcp/build/server.js"],
 ```
 
 - 설정 파일 위치: macOS `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows `%APPDATA%\Claude\claude_desktop_config.json`
@@ -151,11 +160,16 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 ## 6. 개발
 
 ```bash
-npm run build   # tsc
+npm run build   # 워크스페이스 순서 빌드 (kosis-cli → kosis-mcp)
 npm test        # vitest — KOSIS_API_KEY가 있으면 라이브 스모크 포함
 ```
 
-구조: `src/services.ts`의 서비스 정의 레지스트리 하나에서 CLI 서브커맨드와 MCP 도구가 모두 파생됩니다. 엔드포인트를 추가하려면 레지스트리에 항목 하나만 추가하면 됩니다.
+구조 (npm workspaces 모노리포):
+
+- `packages/kosis-cli` — 서비스 정의 레지스트리(`src/services.ts`) + HTTP 클라이언트 + CLI. 의존성 0.
+- `packages/kosis-mcp` — MCP stdio 서버. 코어를 `kosis-cli` 패키지에서 import.
+
+CLI 서브커맨드와 MCP 도구는 모두 레지스트리 하나에서 파생됩니다. 엔드포인트를 추가하려면 레지스트리에 항목 하나만 추가하면 됩니다.
 
 ## 라이선스
 
