@@ -1,0 +1,7 @@
+node_modules/
+build/
+.env
+*.log
+
+# 내부 작업 문서 (공개 리포에서 제외)
+docs/
